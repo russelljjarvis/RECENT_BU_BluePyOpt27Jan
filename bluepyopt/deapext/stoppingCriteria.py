@@ -33,10 +33,18 @@ class MaxNGen(bluepyopt.stoppingCriteria.StoppingCriteria):
         """Constructor"""
         super(MaxNGen, self).__init__()
         self.max_ngen = max_ngen
-
+        self.min_hof = 0
+        self.cnt = 0
     def check(self, kwargs):
         """Check if the maximum number of iteration is reached"""
         gen = kwargs.get("gen")
+        hof = kwargs.get("hof")
 
         if gen > self.max_ngen:
             self.criteria_met = True
+        if hof == self.min_hof:
+            self.cnt+=1
+            # the HOF might be zero, but also want population to converge around 
+            # zero, this requires generations.
+            if self.cnt>7:
+                self.criteria_met = True

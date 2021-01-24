@@ -101,7 +101,10 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
                  cxpb=1.0,
                  map_function=None,
                  hof=None,
-                 selector_name=None):
+                 selector_name=None,
+                 NEURONUNIT=False,
+                 ELITISM=False
+                 ):
         """Constructor
 
         Args:
@@ -110,7 +113,7 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
             offspring_size (int): Number of offspring individuals in each
                 generation
             eta (float): Parameter that controls how far the crossover and
-                mutation operator disturbe the original individuals
+                mutation operator perturb the original individuals
             mutpb (float): Mutation probability
             cxpb (float): Crossover probability
             map_function (function): Function used to map (parallelise) the
@@ -129,6 +132,8 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
         self.cxpb = cxpb
         self.mutpb = mutpb
         self.map_function = map_function
+        self.NEURONUNIT = NEURONUNIT
+        self.ELITISM = ELITISM
 
         self.selector_name = selector_name
         if self.selector_name is None:
@@ -314,7 +319,9 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
             halloffame=self.hof,
             cp_frequency=cp_frequency,
             continue_cp=continue_cp,
-            cp_filename=cp_filename)
+            cp_filename=cp_filename,
+            NEURONUNIT=self.NEURONUNIT,
+            ELITISM=self.ELITISM)
 
         # Update hall of fame
         self.hof = hof

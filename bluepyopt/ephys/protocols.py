@@ -327,3 +327,164 @@ class StepProtocol(SweepProtocol):
     def step_duration(self):
         """Time stimulus starts"""
         return self.step_stimulus.step_duration
+
+class NeuronUnitAllenStepProtocol(SweepProtocol):
+
+	"""Protocol consisting of step and holding current"""
+
+	def __init__(
+			self,
+			name=None,
+			step_stimulus=None,
+			holding_stimulus=None,
+			recordings=None,
+			cvode_active=None):
+		"""Constructor
+
+		Args:
+			name (str): name of this object
+			step_stimulus (list of Stimuli): Stimulus objects used in protocol
+			recordings (list of Recordings): Recording objects used in the
+				protocol
+			cvode_active (bool): whether to use variable time step
+		"""
+
+		super(NeuronUnitAllenStepProtocol, self).__init__(
+			name,
+			stimuli=[
+				step_stimulus,
+				holding_stimulus]
+			if holding_stimulus is not None else [step_stimulus],
+			recordings=recordings,
+			cvode_active=cvode_active)
+
+		self.step_stimulus = step_stimulus
+		self.holding_stimulus = holding_stimulus
+
+	@property
+	def step_delay(self):
+		"""Time stimulus starts"""
+		return self.step_stimulus.step_delay
+
+	@property
+	def step_duration(self):
+		"""Time stimulus starts"""
+		return self.step_stimulus.step_duration
+
+
+	def neuronunit_model_instantiate(self,cell_model,param_values):
+		'''
+		-- Synopsis
+		# first populate the dtc by frozen default attributes
+		# then update with dynamic gene attributes as appropriate.
+		'''
+		dtc = cell_model.model_to_dtc(attrs=param_values)
+		assert dtc.backend == cell_model.backend
+		dtc._backend = cell_model._backend
+		return dtc,cell_model
+
+	def neuronunit_model_evaluate(self,cell_model,dtc,param_values):
+		from neuronunit.optimization.optimization_management import dtc_to_rheo
+		from neuronunit.optimization.optimization_management import multi_spiking_feature_extraction
+		if hasattr(cell_model,'allen'):
+			if hasattr(cell_model,'seeded_current'):
+				dtc.seeded_current = cell_model.seeded_current
+				dtc.spk_count = cell_model.spk_count
+				dtc.attrs = param_values
+				dtc = multi_spiking_feature_extraction(dtc,
+					solve_for_current = cell_model.seeded_current,
+					efel_filter_list = cell_model.efel_filter_list)
+
+				if hasattr(dtc,'efel'):
+					responses = {'features':dtc.efel,
+					'dtc':dtc,'model':cell_model,'params':param_values}
+				else:
+					responses = {'model':dtc,
+					'rheobase':cell_model.rheobase,'params':param_values}
+
+			else:
+				dtc = multi_spiking_feature_extraction(dtc)
+
+				if hasattr(dtc,'efel'):
+					responses = {'features':dtc.efel,
+					'dtc':dtc,'model':cell_model,'params':param_values}
+				else:
+					responses = {'model':cell_model,
+					'rheobase':cell_model.rheobase,'params':param_values}
+		else:
+			dtc.attrs = param_values
+			dtc = dtc_to_rheo(dtc,bind_vm=True)
+			responses = {
+				'response':dtc.vmrh,
+				'model':dtc.dtc_to_model(),
+				'dtc':dtc,
+				'rheobase':dtc.rheobase,
+				'params':param_values}
+		return responses
+
+	def _run_func(self, cell_model, param_values, sim=None):
+		"""Run protocols"""
+		try:
+			cell_model.freeze(param_values)
+			dtc,cell_model = self.neuronunit_model_instantiate(cell_model,param_values)
+			responses = self.neuronunit_model_evaluate(cell_model,dtc,param_values)
+			cell_model.unfreeze(param_values.keys())
+			return responses
+		except BaseException:
+			import sys
+			import traceback
+			raise Exception(
+				"".join(
+					traceback.format_exception(*sys.exc_info())))
+
+	def run(
+			self,
+			cell_model,
+			param_values,
+			sim=None,
+			isolate=None,
+			timeout=None):
+		"""Instantiate protocol"""
+
+		if isolate is None:
+			isolate = True
+
+		if isolate:
+			def _reduce_method(meth):
+				"""Overwrite reduce"""
+				return (getattr, (meth.__self__, meth.__func__.__name__))
+
+			import copyreg
+			import types
+			copyreg.pickle(types.MethodType, _reduce_method)
+			import pebble
+			from concurrent.futures import TimeoutError
+
+			if timeout is not None:
+				if timeout < 0:
+					raise ValueError("timeout should be > 0")
+
+			with pebble.ProcessPool(max_workers=1, max_tasks=1) as pool:
+				tasks = pool.schedule(self._run_func, kwargs={
+					'cell_model': cell_model,
+					'param_values': param_values,
+					'sim': sim},
+					timeout=timeout)
+				try:
+					responses = tasks.result()
+				except TimeoutError:
+					if hasattr(cell_model,"NU"):
+						responses = self._run_func(cell_model=cell_model,
+								param_values=param_values,
+								sim=sim)
+					else:
+						logger.debug('SweepProtocol: task took longer than '
+									 'timeout, will return empty response '
+									 'for this recording')
+						responses = {recording.name:
+									 None for recording in self.recordings}
+		else:
+			responses = self._run_func(cell_model=cell_model,
+									   param_values=param_values,
+									   sim=sim)
+		return responses
