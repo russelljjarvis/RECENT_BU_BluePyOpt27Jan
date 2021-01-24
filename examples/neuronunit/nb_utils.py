@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import quantities as qt
 import os
 
-from neuronunit.allenapi.allen_data_driven import opt_setup, opt_setup_two, opt_exec
+from neuronunit.allenapi.allen_data_driven import opt_exec
 from neuronunit.allenapi.allen_data_driven import opt_to_model,wrap_setups
 from neuronunit.allenapi.utils import dask_map_function
 from neuronunit.optimization.model_parameters import MODEL_PARAMS, BPO_PARAMS, to_bpo_param
@@ -24,15 +24,19 @@ if SILENT:
 def optimize_job(specimen_id,
                     model_type,
                     score_type=RelativeDifferenceScore,
-                    efel_filter_list=None):
+                    efel_filter_iterable=None):
     find_sweep_with_n_spikes = 8
     dtc = DataTC()
     dtc.backend = model_type
     model = dtc.dtc_to_model()
     model.params = BPO_PARAMS[model_type]
     fixed_current = 122 *qt.pA
-    NGEN = 100
-    MU = 20
+    if model_type is "ADEXP":
+        NGEN = 100
+        MU = 20
+    if model_type is "ADEXP":
+        NGEN = 200
+        MU = 55
 
     mapping_funct = dask_map_function
     cell_evaluator,simple_cell,suite,target_current,spk_count = wrap_setups(
@@ -43,7 +47,7 @@ def optimize_job(specimen_id,
               fixed_current=False,
               cached=False,
               score_type=score_type,
-              efel_filter_list=efel_filter_list
+              efel_filter_iterable=efel_filter_iterable
     )
     final_pop, hall_of_fame, logs, hist = opt_exec(MU,NGEN,mapping_funct,cell_evaluator)
     opt, target,scores,obs_preds,df = opt_to_model(hall_of_fame,cell_evaluator,suite, target_current, spk_count)

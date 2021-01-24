@@ -393,7 +393,7 @@ class NeuronUnitAllenStepProtocol(SweepProtocol):
 				dtc.attrs = param_values
 				dtc = multi_spiking_feature_extraction(dtc,
 					solve_for_current = cell_model.seeded_current,
-					efel_filter_list = cell_model.efel_filter_list)
+					efel_filter_iterable = cell_model.efel_filter_iterable)
 
 				if hasattr(dtc,'efel'):
 					responses = {'features':dtc.efel,
