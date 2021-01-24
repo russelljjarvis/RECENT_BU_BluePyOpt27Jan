@@ -13,7 +13,7 @@ from neuronunit.optimization.data_transport_container import DataTC
 from jithub.models import model_classes
 
 from sciunit.scores import RelativeDifferenceScore,ZScore
-from sciunit.utils import config_set, config_get
+from sciunit.utils import config_set
 config_set('PREVALIDATE', False)
 
 SILENT = True
@@ -32,7 +32,7 @@ def optimize_job(specimen_id,
     model.params = BPO_PARAMS[model_type]
     fixed_current = 122 *qt.pA
     NGEN = 100
-    MU = 100
+    MU = 20
 
     mapping_funct = dask_map_function
     cell_evaluator,simple_cell,suite,target_current,spk_count = wrap_setups(
