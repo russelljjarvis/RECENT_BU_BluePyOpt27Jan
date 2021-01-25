@@ -396,9 +396,13 @@ class NeuronUnitAllenStepProtocol(SweepProtocol):
 				self.step_stimulus = {}
 				self.step_stimulus['amplitude'] = dtc.seeded_current
 				###########################################
+				if hasattr(cell_model,'efel_filter_iterable'):
+					temp_efel_iter = cell_model.efel_filter_iterable
+				else:
+					temp_efel_iter = None
 				dtc = multi_spiking_feature_extraction(dtc,
 					solve_for_current = cell_model.seeded_current,
-					efel_filter_iterable = cell_model.efel_filter_iterable)
+					efel_filter_iterable = temp_efel_iter)
 				if hasattr(dtc,'efel'):
 					responses = {'features':dtc.efel,
 					'dtc':dtc,'model':cell_model,'params':param_values}

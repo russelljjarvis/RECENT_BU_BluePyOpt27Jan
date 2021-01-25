@@ -80,13 +80,21 @@ def _record_stats(stats, logbook, gen, population, invalid_count):
 
 def _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb,gen):
 	'''return the offspring, use toolbox.variate if possible'''
-	BOUND_LOW = toolbox.uniformparams.args[0][0]
-	BOUND_UP = toolbox.uniformparams.args[1][0]
-	NDIM = len(toolbox.uniformparams.args)
-	toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=25.0/gen)
-	toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=25.0/gen, indpb=1.0/NDIM)
+	from deap import tools
+
+	BOUND_LOW = []
+	BOUND_UP = []
+	NDIM = len(parents[0])
+	fit_dim = len(parents[0].fitness.values)
+	for x in range(0,len(parents[0])):
+		BOUND_LOW.append(toolbox.uniformparams.args[0][x])
+		BOUND_UP.append(toolbox.uniformparams.args[1][x])
+	ETA = int(25.0*1/gen)
+	toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA)
+	toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA, indpb=1.0/NDIM)
 	if hasattr(toolbox, 'variate'):
 		return toolbox.variate(parents, toolbox, cxpb, mutpb)
+	print(ETA)
 	return deap.algorithms.varAnd(parents, toolbox, cxpb, mutpb)
 
 def _get_offspring(parents, toolbox, cxpb, mutpb):
@@ -179,10 +187,10 @@ def eaAlphaMuPlusLambdaCheckpoint(
 	stopping_params = {"gen": gen}
 	pbar = tqdm(total=ngen)
 	while not(_check_stopping_criteria(stopping_criteria, stopping_params)):
-		if NEURONUNIT:
-			offspring = _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb, gen)
-		else:
-			offspring = _get_offspring(parents, toolbox, cxpb, mutpb)
+		#if NEURONUNIT:
+		#	offspring = _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb, gen)
+		#else:
+		offspring = _get_offspring(parents, toolbox, cxpb, mutpb)
 
 		population = parents + offspring
 
@@ -197,10 +205,10 @@ def eaAlphaMuPlusLambdaCheckpoint(
 		_record_stats(stats, logbook, gen, population, invalid_count)
 
 		# Select the next generation parents
-		if NEURONUNIT:
-			parents = toolbox.select(population, int(mu/4))
-		else:
-			parents = toolbox.select(population, mu)
+		#if NEURONUNIT:
+		#	parents = toolbox.select(population, int(mu/2))
+		#else:
+		parents = toolbox.select(population, mu)
 		logger.info(logbook.stream)
 
 		if(cp_filename and cp_frequency and
