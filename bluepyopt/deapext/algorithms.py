@@ -205,7 +205,7 @@ def eaAlphaMuPlusLambdaCheckpoint(
 
 		# Select the next generation parents
 		if NEURONUNIT:
-			if mu=>90:
+			if mu>=90:
 				parents = toolbox.select(population, int(mu/5))
 			else:
 				parents = toolbox.select(population, int(mu/3))
