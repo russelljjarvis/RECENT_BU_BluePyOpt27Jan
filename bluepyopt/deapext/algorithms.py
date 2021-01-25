@@ -78,9 +78,19 @@ def _record_stats(stats, logbook, gen, population, invalid_count):
 	record = stats.compile(population) if stats is not None else {}
 	logbook.record(gen=gen, nevals=invalid_count, **record)
 
+def _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb,gen):
+	'''return the offspring, use toolbox.variate if possible'''
+
+	toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=20.0/gen)
+    toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=20.0/gen, indpb=1.0/NDIM)
+
+	if hasattr(toolbox, 'variate'):
+		return toolbox.variate(parents, toolbox, cxpb, mutpb)
+	return deap.algorithms.varAnd(parents, toolbox, cxpb, mutpb)
 
 def _get_offspring(parents, toolbox, cxpb, mutpb):
 	'''return the offspring, use toolbox.variate if possible'''
+
 	if hasattr(toolbox, 'variate'):
 		return toolbox.variate(parents, toolbox, cxpb, mutpb)
 	return deap.algorithms.varAnd(parents, toolbox, cxpb, mutpb)
@@ -168,8 +178,13 @@ def eaAlphaMuPlusLambdaCheckpoint(
 	stopping_params = {"gen": gen}
 	pbar = tqdm(total=ngen)
 	while not(_check_stopping_criteria(stopping_criteria, stopping_params)):
-		offspring = _get_offspring(parents, toolbox, cxpb, mutpb)
+		if NEURONUNIT:
+			offspring = _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb)
+		else:
+			offspring = _get_offspring(parents, toolbox, cxpb, mutpb)
+
 		population = parents + offspring
+
 		if ELITISM:
 			population.append(halloffame[0])
 		flo = np.sum(halloffame[0].fitness.values)
