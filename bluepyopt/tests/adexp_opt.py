@@ -11,9 +11,6 @@ import efel
 import matplotlib.pyplot as plt
 import quantities as qt
 
-import matplotlib
-
-matplotlib.use("Agg")
 from neuronunit.allenapi.allen_data_efel_features_opt import (
     opt_to_model,
     opt_setup,

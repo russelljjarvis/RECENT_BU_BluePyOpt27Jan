@@ -89,12 +89,12 @@ def _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb,gen):
 	for x in range(0,len(parents[0])):
 		BOUND_LOW.append(toolbox.uniformparams.args[0][x])
 		BOUND_UP.append(toolbox.uniformparams.args[1][x])
-	ETA = int(25.0*1/gen)
+	ETA = int(25.0*(5/gen))
+	print(ETA)
 	toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA)
-	toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA, indpb=1.0/NDIM)
+	#toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA, indpb=1.0/NDIM)
 	if hasattr(toolbox, 'variate'):
 		return toolbox.variate(parents, toolbox, cxpb, mutpb)
-	print(ETA)
 	return deap.algorithms.varAnd(parents, toolbox, cxpb, mutpb)
 
 def _get_offspring(parents, toolbox, cxpb, mutpb):
@@ -205,10 +205,10 @@ def eaAlphaMuPlusLambdaCheckpoint(
 		_record_stats(stats, logbook, gen, population, invalid_count)
 
 		# Select the next generation parents
-		#if NEURONUNIT:
-		#	parents = toolbox.select(population, int(mu/2))
-		#else:
-		parents = toolbox.select(population, mu)
+		if NEURONUNIT:
+			parents = toolbox.select(population, int(mu/5))
+		else:
+			parents = toolbox.select(population, mu)
 		logger.info(logbook.stream)
 
 		if(cp_filename and cp_frequency and
