@@ -90,7 +90,6 @@ def _get_offspring_time_diminishing_eta(parents, toolbox, cxpb, mutpb,gen):
 		BOUND_LOW.append(toolbox.uniformparams.args[0][x])
 		BOUND_UP.append(toolbox.uniformparams.args[1][x])
 	ETA = int(25.0*(5/gen))
-	print(ETA)
 	toolbox.register("mate", tools.cxSimulatedBinaryBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA)
 	#toolbox.register("mutate", tools.mutPolynomialBounded, low=BOUND_LOW, up=BOUND_UP, eta=ETA, indpb=1.0/NDIM)
 	if hasattr(toolbox, 'variate'):

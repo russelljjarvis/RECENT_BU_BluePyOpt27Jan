@@ -56,5 +56,3 @@ jobs:
       - run: cd bluepyopt/tests; python rheobase_dtc_test.py
       - run: cd bluepyopt/tests; python adexp_opt.py
       - run: cd bluepyopt/tests; python izhi_opt.py
-      - run: cd bluepyopt/tests; python test_evaluators.py
-      - run: cd bluepyopt/tests; python test_bluepyopt.py
