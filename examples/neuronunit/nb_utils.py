@@ -7,7 +7,6 @@ import os
 from neuronunit.allenapi.allen_data_driven import opt_exec
 from neuronunit.allenapi.allen_data_driven import opt_to_model,wrap_setups
 from neuronunit.allenapi.utils import dask_map_function
-
 from neuronunit.optimization.model_parameters import MODEL_PARAMS, BPO_PARAMS, to_bpo_param
 from neuronunit.optimization.optimization_management import dtc_to_rheo,inject_and_plot_model
 from neuronunit.optimization.data_transport_container import DataTC
@@ -30,12 +29,15 @@ def optimize_job(specimen_id,
     dtc = DataTC()
     dtc.backend = model_type
     model = dtc.dtc_to_model()
-    model.params = BPO_PARAMS[model_type]
+
     fixed_current = 122 *qt.pA
     if model_type is "ADEXP":
-        NGEN = 200
-        MU = 55
+        model.params = BPO_PARAMS[model_type]
+        NGEN = 350
+        MU = 100
     if model_type is "IZHI":
+        model.params = BPO_PARAMS[model_type]
+        #model.params['celltype'].freeze(int(7))
         NGEN = 350
         MU = 150
 

@@ -102,8 +102,7 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
                  map_function=None,
                  hof=None,
                  selector_name=None,
-                 NEURONUNIT=False,
-                 ELITISM=False
+                 neuronunit=False,
                  ):
         """Constructor
 
@@ -132,9 +131,7 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
         self.cxpb = cxpb
         self.mutpb = mutpb
         self.map_function = map_function
-        self.NEURONUNIT = NEURONUNIT
-        self.ELITISM = ELITISM
-
+        self.neuronunit = neuronunit
         self.selector_name = selector_name
         if self.selector_name is None:
             self.selector_name = 'IBEA'
@@ -307,6 +304,10 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
         stats.register("std", numpy.std)
         stats.register("min", numpy.min)
         stats.register("max", numpy.max)
+        if self.neuronunit:
+            # if neuronunit overwrite path of optimization algorithms
+            # to get some reduced model relevant customizations.
+            from neuronunit.optimization import algorithms
 
         pop, hof, log, history = algorithms.eaAlphaMuPlusLambdaCheckpoint(
             pop,
@@ -319,11 +320,8 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
             halloffame=self.hof,
             cp_frequency=cp_frequency,
             continue_cp=continue_cp,
-            cp_filename=cp_filename,
-            NEURONUNIT=self.NEURONUNIT,
-            ELITISM=self.ELITISM)
+            cp_filename=cp_filename)
 
-        # Update hall of fame
         self.hof = hof
 
         return pop, self.hof, log, history
