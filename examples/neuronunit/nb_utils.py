@@ -51,7 +51,7 @@ def optimize_job(
         model.params = BPO_PARAMS[model_type]
         # model.params['celltype'].freeze(int(7))
         NGEN = 350
-        MU = 100
+        MU = 200
 
     mapping_funct = dask_map_function
     cell_evaluator, simple_cell, suite, target_current, spk_count = wrap_setups(

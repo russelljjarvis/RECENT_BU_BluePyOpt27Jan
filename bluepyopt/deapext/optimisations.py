@@ -308,7 +308,8 @@ class DEAPOptimisation(bluepyopt.optimisations.Optimisation):
             # if neuronunit overwrite path of optimization algorithms
             # to get some reduced model relevant customizations.
             from neuronunit.optimization import algorithms
-
+        else:
+            import algorithms
         pop, hof, log, history = algorithms.eaAlphaMuPlusLambdaCheckpoint(
             pop,
             self.toolbox,

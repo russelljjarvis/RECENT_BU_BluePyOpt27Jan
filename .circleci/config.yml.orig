@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 defaults: &defaults
   working_directory: ~/markovmodel/PyEMMA
   docker:
@@ -40,23 +41,34 @@ jobs:
       - run: git clone -b neuronunit https://github.com/russelljjarvis/jit_hub.git
       - run: cd jit_hub; pip install -e .; cd ..;
       - run: pip install git+https://github.com/russelljjarvis/neuronunit@optimization
-      - run: pip install ipfx
       - run: pip install git+https://github.com/russelljjarvis/eFEL
       - run: pip install cython
       - run: pip install asciiplotlib;
       - run: pip install streamlit;
       - run: pip install seaborn;
-      - run: pip install sklearn
+
       - run: pip install allensdk==0.16.3
-      - run: pip install frozendict
-      - run: pip install nose
-      #- run: pip install efel
+      - run: pip install ipfx
+      - run: cd bluepyopt/tests; python rheobase_dtc_test.py
       - run: rm -rf /opt/conda/lib/python3.8/site-packages/sciunit
       - run: git clone -b dev https://github.com/russelljjarvis/sciunit.git
       - run: cd sciunit; pip install -e .; cd ..;
-      - run: cd bluepyopt/tests; python rheobase_dtc_test.py
       - run: cd bluepyopt/tests; python adexp_opt.py
+      - run: cd bluepyopt/tests; python izhi_opt.py
       - run: cd bluepyopt/tests; python test_evaluators.py
-
-      # causes time out
-      #- run: cd bluepyopt/tests; python izhi_opt.py
+      - run: cd bluepyopt/tests; python test_bluepyopt.py
+=======
+# Use the latest 2.1 version of CircleCI pipeline process engine. See: https://circleci.com/docs/2.0/configuration-reference
+version: 2.1
+# Use a package of configuration called an orb.
+orbs:
+  # Declare a dependency on the welcome-orb
+  welcome: circleci/welcome-orb@0.4.1
+# Orchestrate or schedule a set of jobs
+workflows:
+  # Name the workflow "welcome"
+  welcome:
+    # Run the welcome/run job in its own container
+    jobs:
+      - welcome/run
+>>>>>>> 46135585320d5b34e4f3b33775eabdb54e175336
